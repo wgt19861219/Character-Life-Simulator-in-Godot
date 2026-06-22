@@ -1,0 +1,6 @@
+# Godot 导入缓存
+.godot/
+
+# 临时测试截图
+screenshot.png
+screenshot.png.import

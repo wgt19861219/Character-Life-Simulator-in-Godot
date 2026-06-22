@@ -4,7 +4,7 @@ extends Control
 # Declare variables for the character 'Jane' and her initial configuration
 var jane
 var jane_config_dict = {
-	"character_name": "Jame",
+	"character_name": "Jane",
 	"sleep_initial_max": 100,
 	"food_initial_max": 100,
 	"entertainment_initial_max": 100,

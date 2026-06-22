@@ -1,4 +1,5 @@
-class_name Character_Class extends Node
+class_name Character_Class
+extends Node
 
 
 # Declare member variables for character's name and needs (max, decay, current state)
@@ -36,24 +37,24 @@ var mental
 # Initialize member variables via constructor
 func _init(config = {}):
 	# Initialization from the configuration dictionary
-	Name_of_character = config["character_name"] 
-	sleep_max = config["sleep_initial_max"] 
-	food_max = config["food_initial_max"] 
-	entertainment_max = config["entertainment_initial_max"] 
-	social_max = config["social_initial_max"] 
-	health_max = config["health_initial_max"] 
-	physical_max = config["physical_initial_max"] 
-	mental_max = config["mental_initial_max"] 
-	sleep_decay = config["sleep_initial_decay"] 
-	food_decay = config["food_initial_decay"] 
+	Name_of_character = config["character_name"]
+	sleep_max = config["sleep_initial_max"]
+	food_max = config["food_initial_max"]
+	entertainment_max = config["entertainment_initial_max"]
+	social_max = config["social_initial_max"]
+	health_max = config["health_initial_max"]
+	physical_max = config["physical_initial_max"]
+	mental_max = config["mental_initial_max"]
+	sleep_decay = config["sleep_initial_decay"]
+	food_decay = config["food_initial_decay"]
 	entertainment_decay = config["entertainment_initial_decay"]
 	social_decay = config["social_initial_decay"]
 	health_decay = config["health_initial_decay"]
 	physical_decay = config["physical_initial_decay"]
 	mental_decay = config["mental_initial_decay"]
 
- 
-	sleep = round(sleep_max / 2) 
+	# Needs start at half their maximum
+	sleep = round(sleep_max / 2)
 	food = round(food_max / 2)
 	entertainment = round(entertainment_max / 2)
 	social = round(social_max / 2)
@@ -61,15 +62,15 @@ func _init(config = {}):
 	physical = round(physical_max / 2)
 	mental = round(mental_max / 2)
 
-# Function to decay the needs over time
+# 衰减需求：用 max(0, ...) 钳制下限，防止需求变负值（原版无下限，长时间运行会破坏效用计算）
 func decay_needs():
-	sleep -= sleep_decay
-	food -= food_decay
-	entertainment -= entertainment_decay
-	social -= social_decay
-	health -= health_decay
-	physical -= physical_decay
-	mental -= mental_decay
+	sleep = max(0, sleep - sleep_decay)
+	food = max(0, food - food_decay)
+	entertainment = max(0, entertainment - entertainment_decay)
+	social = max(0, social - social_decay)
+	health = max(0, health - health_decay)
+	physical = max(0, physical - physical_decay)
+	mental = max(0, mental - mental_decay)
 
 # Function to update a specific need
 func update_need(need_name, amount):
@@ -89,10 +90,12 @@ func update_need(need_name, amount):
 		"mental":
 			mental = clamp(mental + amount, 0, mental_max)
 
-# Predefined list of activities and their impact on needs
-# Can remove this once all activies are properly implimented in the get_activies section. 
+# 全部活动及其对需求影响的总表（唯一数据源）。
+# get_activities() 过滤它、apply_activity() 消费它——二者共用同一张表，再也不会不一致
+# （这正是之前 take_a_nap 崩溃的根因：get_activities 给了它、list_of_activities 里却没有）。
 var list_of_activities = {
 	"sleeping": {"sleep": 30, "health": 5, "mental": 2},
+	"take_a_nap": {"sleep": 10},
 	"eating_at_home": {"food": 20, "health": 3},
 	"eating_out": {"food": 20, "social": 5, "entertainment": 2},
 	"grocery_shopping": {"food": 10, "physical": 3},
@@ -123,67 +126,13 @@ var list_of_activities = {
 	"going_to_a_library": {"mental": 15},
 	"cleaning_the_house": {"health": 5, "mental": -5}
 }
-# Function to get available activities based on time and character-specific 
-func get_activities(time, character_name):
-	var available_activities = {}
-	# Activites available all the time and to everyone.  
-	var base_activities = {
-		"take_a_nap": {"sleep": 10},
-		"eating_at_home": {"food": 20, "health": 3},
-		"eating_out": {"food": 20, "social": 5, "entertainment": 2},
-		"grocery_shopping": {"food": 10, "physical": 3},
-		"going_to_the_gym": {"physical": 15, "health": 5},
-		"socializing_at_cafe": {"social": 20, "food": 5},
-		"watching_movie": {"entertainment": 15, "mental": -1},
-		"reading": {"mental": 10, "entertainment": 5},
-		"working_overtime": {"mental": -10, "physical": -5, "food": -5},
-		"going_to_doctor": {"health": 20},
-		"playing_sports": {"physical": 20, "social": 5, "health": 5},
-		"taking_a_bath": {"health": 10, "mental": 5},
-		"cooking": {"food": 15, "mental": 5},
-		"going_to_a_concert": {"entertainment": 20, "social": 10},
-		"visiting_family": {"social": 20, "mental": 5},
-		"doing_yoga": {"health": 10, "mental": 10},
-		"online_shopping": {"entertainment": 10, "mental": -2},
-		"playing_video_games": {"entertainment": 20, "mental": -5},
-		"going_to_a_museum": {"entertainment": 10, "mental": 10},
-		"gardening": {"mental": 5, "physical": 5},
-		"taking_a_walk": {"health": 5, "mental": 5, "physical": 5},
-		"going_to_the_beach": {"entertainment": 10, "health": 5},
-		"visiting_a_spa": {"health": 20, "mental": 10},
-		"going_fishing": {"entertainment": 5, "mental": 5},
-		"painting": {"mental": 10, "entertainment": 5},
-		"writing": {"mental": 5},
-		"going_to_a_party": {"social": 25, "entertainment": 35},
-		"volunteering": {"social": 10, "mental": 10},
-		"going_to_a_library": {"mental": 15},
-		"cleaning_the_house": {"health": 5, "mental": -5}
-	}
-	
-	# Time-based activities #WIP CERTAIN ACTIVITES ARE ONLY AVAILABLE AT CERTAIN TIMES 
-	match time:
-		0: # 12am - 4am
-			available_activities.merge({"sleeping": {"sleep": 30, "health": 5, "mental": 2},})
-		1: # 4am - 8 am
-			available_activities.merge({"sleeping": {"sleep": 30, "health": 5, "mental": 2},})
-		2: # 8am - 12 pm
-			available_activities.merge({"sleeping": {"sleep": 30, "health": 5, "mental": 2},})
-		3: # 12pm - 4 pm
-			available_activities.merge({"sleeping": {"sleep": 30, "health": 5, "mental": 2},})
-		4: # 4pm - 8pm
-			available_activities.merge({"sleeping": {"sleep": 30, "health": 5, "mental": 2},})
-		5: # 8pm - 12am
-			available_activities.merge({"sleeping": {"sleep": 30, "health": 5, "mental": 2},})
-	# Character-specific activities #WIP CERTAIN ACTIVITES ARE ONLY AVAILABLE FOR CERTAIN PEOPLE/s
-	# Good for jobs people with special hobbys
-	match character_name:
-		"Jane":
-			available_activities.merge({"sleeping": {"sleep": 30, "health": 5, "mental": 2},})
-	
-	# Merge with base activities
-	available_activities.merge(base_activities)
-	return available_activities
-	
+
+# 返回该角色在指定时间可用的活动。
+# 当前为占位：直接返回全表的深拷贝。真正的时段/角色过滤是 TODO
+# （原 time/character 分支其实只重复添加了 sleeping，而 sleeping 已在本表）。
+func get_activities(_time, _character_name):
+	return list_of_activities.duplicate(true)
+
 # Function to calculate the utility of an activity
 func calculate_utility(activity):
 	var total_utility = 0.0
@@ -201,7 +150,7 @@ func calculate_utility(activity):
 
 	return total_utility
 
-# Function to apply the selected activity to the characte
+# Function to apply the selected activity to the character
 func apply_activity(activity_name):
 	var selected_activity = list_of_activities[activity_name]
 	for need in selected_activity.keys():
@@ -210,18 +159,12 @@ func apply_activity(activity_name):
 
 # Function to select the best activity based on the calculated utility
 func select_best_activity():
-	# Currently setting the time to zero, later you will impliment this with what ever time system you want to add. 
-	# the get_activies time section is hourly based but can easily be changed to whatever you want. though it is poorly writen so if you
-	# want min by min time you will need to write alot of match statements. like one for each min in the day. 
 	var activities = get_activities(0, Name_of_character)
 	var best_activity = ""
 	var highest_utility = -1.0
-	
+
 	for activity_name in activities.keys():
-		print(activity_name)
-		var activity = activities[activity_name]
-		var utility = calculate_utility(activity)
-		print(utility)
+		var utility = calculate_utility(activities[activity_name])
 		if utility > highest_utility:
 			best_activity = activity_name
 			highest_utility = utility
