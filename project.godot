@@ -8,6 +8,10 @@
 
 config_version=5
 
+[autoload]
+
+TimeManager="*res://TimeManager.gd"
+
 [application]
 
 config/name="character_behaviour_test"
