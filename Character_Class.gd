@@ -137,12 +137,13 @@ func calculate_utility(activity: Dictionary) -> float:
 	var total_utility: float = 0.0
 	var duration: float = activity.get("duration_hours", DEFAULT_DURATION_HOURS)
 	for need in activity["effects"].keys():
-		var impact: float = activity["effects"][need] * duration
-		var current_value: float = get(need)
-		var max_value: float = get(str(need) + "_max")
-		var base_utility: float = impact * float(max_value - current_value) / float(max_value)
-		var wasted_utility: float = max(0.0, current_value + impact - max_value)
-		total_utility += base_utility - wasted_utility
+		var effect_ph: float = activity["effects"][need]
+		var decay_ph: float = get(str(need) + "_decay")
+		var current: float = get(need)
+		var mx: float = get(str(need) + "_max")
+		var net_change: float = clamp(current + (effect_ph - decay_ph) * duration, 0.0, mx) - current
+		var urgency: float = float(mx - current) / float(mx)
+		total_utility += net_change * urgency
 	return total_utility
 
 func select_best_activity(day_part: String) -> void:
