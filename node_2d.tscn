@@ -69,8 +69,26 @@ offset_right = 40.0
 offset_bottom = 23.0
 text = "Activity : "
 
-[node name="Timer" type="Timer" parent="."]
-wait_time = 3.0
-autostart = true
+[node name="TimeLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 230.0
+offset_right = 300.0
+offset_bottom = 256.0
+text = "Time:"
 
-[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
+[node name="StatusLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 258.0
+offset_right = 300.0
+offset_bottom = 284.0
+text = "Status:"
+
+[node name="SpeedLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 286.0
+offset_right = 400.0
+offset_bottom = 312.0
+text = "Speed:"
