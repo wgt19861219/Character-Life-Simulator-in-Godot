@@ -2,7 +2,7 @@
 
 - 日期：2026-06-22
 - 项目：Character-Life-Simulator-in-Godot（模拟人生复刻）
-- 状态：已确认（待写实施计划）
+- 状态：已实现（implemented 2026-06-23；food decay 经 v1 微调 8→5）
 - 上游路径：`D:\GitHub\Character-Life-Simulator-in-Godot`
 
 ## 1. 目标
@@ -143,7 +143,7 @@ Character.tick(delta_minutes, day_part):
 | 需求 | decay/h | 依据 |
 |---|---|---|
 | sleep | 6 | 醒 16h 耗 ~96，逼一次 8h 睡眠 |
-| food | 8 | ~12h 耗尽，日食 2–3 顿 |
+| food | 5 | ~20h 耗尽，日食 1–2 顿（v1 微调：原 8 与 sleeping 8h 冲突，sleeping 期间 food 连续 ≥6h 跌零，集成验证后下调） |
 | entertainment | 4 | 慢衰 |
 | social | 3 | 慢衰 |
 | physical | 3 | |
@@ -211,8 +211,8 @@ Character.tick(delta_minutes, day_part):
 5. `1/2/3` 切速、`Space` 暂停生效
 6. GUI 三行：时间（HH:MM · 时段）、状态（正在做 X · 剩 Yh）、速度档
 7. `run_project` 跑 3 游戏天零崩溃，且（headless 可断言）：
-   - night 段 `is_busy==true 且 current_activity=="sleeping"` 的样本占比 ≥ 80%
-   - food 不连续 ≥ 6 游戏小时停留在 0
+   - night 段 `is_busy==true 且 current_activity=="sleeping"` 的样本占比 ≥ 80% → **实测 19/24 ≈ 79%**（utility 偏晚致 21:00 选长活动跨 night，§9 已知限制，留阶段 2 修 per_hour 净效用模型）
+   - food 不连续 ≥ 6 游戏小时停留在 0 → **实测连续 3h ✓**（food decay 经 v1 微调 8→5 后达成，见 §6）
 
 ## 9. 已知限制（阶段 1 不处理）
 
