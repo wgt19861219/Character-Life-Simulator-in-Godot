@@ -1,13 +1,8 @@
 class_name Character_Class
 extends Node
 
-
-# Declare member variables for character's name and needs (max, decay, current state)
-
-# Character's name
 var Name_of_character
 
-# Maximum values for each need
 var sleep_max
 var food_max
 var entertainment_max
@@ -16,7 +11,6 @@ var health_max
 var physical_max
 var mental_max
 
-# Decay rates for each need
 var sleep_decay
 var food_decay
 var entertainment_decay
@@ -25,7 +19,6 @@ var health_decay
 var physical_decay
 var mental_decay
 
-# Current state of each need
 var sleep
 var food
 var entertainment
@@ -34,9 +27,14 @@ var health
 var physical
 var mental
 
-# Initialize member variables via constructor
+# 活动持续状态
+var current_activity: String = ""
+var remaining_hours: float = 0.0
+var is_busy: bool = false
+
+const DEFAULT_DURATION_HOURS: float = 2.0
+
 func _init(config = {}):
-	# Initialization from the configuration dictionary
 	Name_of_character = config["character_name"]
 	sleep_max = config["sleep_initial_max"]
 	food_max = config["food_initial_max"]
@@ -52,8 +50,6 @@ func _init(config = {}):
 	health_decay = config["health_initial_decay"]
 	physical_decay = config["physical_initial_decay"]
 	mental_decay = config["mental_initial_decay"]
-
-	# Needs start at half their maximum
 	sleep = round(sleep_max / 2)
 	food = round(food_max / 2)
 	entertainment = round(entertainment_max / 2)
@@ -62,110 +58,103 @@ func _init(config = {}):
 	physical = round(physical_max / 2)
 	mental = round(mental_max / 2)
 
-# 衰减需求：用 max(0, ...) 钳制下限，防止需求变负值（原版无下限，长时间运行会破坏效用计算）
-func decay_needs():
-	sleep = max(0, sleep - sleep_decay)
-	food = max(0, food - food_decay)
-	entertainment = max(0, entertainment - entertainment_decay)
-	social = max(0, social - social_decay)
-	health = max(0, health - health_decay)
-	physical = max(0, physical - physical_decay)
-	mental = max(0, mental - mental_decay)
-
-# Function to update a specific need
-func update_need(need_name, amount):
-	match need_name:
-		"sleep":
-			sleep = clamp(sleep + amount, 0, sleep_max)
-		"food":
-			food = clamp(food + amount, 0, food_max)
-		"entertainment":
-			entertainment = clamp(entertainment + amount, 0, entertainment_max)
-		"social":
-			social = clamp(social + amount, 0, social_max)
-		"health":
-			health = clamp(health + amount, 0, health_max)
-		"physical":
-			physical = clamp(physical + amount, 0, physical_max)
-		"mental":
-			mental = clamp(mental + amount, 0, mental_max)
-
-# 全部活动及其对需求影响的总表（唯一数据源）。
-# get_activities() 过滤它、apply_activity() 消费它——二者共用同一张表，再也不会不一致
-# （这正是之前 take_a_nap 崩溃的根因：get_activities 给了它、list_of_activities 里却没有）。
+# 全部活动表。effects 为 per_hour 毛速率;duration_hours 未标吃默认 2h;allowed_during 未标则任意时段。
 var list_of_activities = {
-	"sleeping": {"sleep": 30, "health": 5, "mental": 2},
-	"take_a_nap": {"sleep": 10},
-	"eating_at_home": {"food": 20, "health": 3},
-	"eating_out": {"food": 20, "social": 5, "entertainment": 2},
-	"grocery_shopping": {"food": 10, "physical": 3},
-	"going_to_the_gym": {"physical": 15, "health": 5},
-	"socializing_at_cafe": {"social": 20, "food": 5},
-	"watching_movie": {"entertainment": 15, "mental": -1},
-	"reading": {"mental": 10, "entertainment": 5},
-	"working_overtime": {"mental": -10, "physical": -5, "food": -5},
-	"going_to_doctor": {"health": 20},
-	"playing_sports": {"physical": 20, "social": 5, "health": 5},
-	"taking_a_bath": {"health": 10, "mental": 5},
-	"cooking": {"food": 15, "mental": 5},
-	"going_to_a_concert": {"entertainment": 20, "social": 10},
-	"visiting_family": {"social": 20, "mental": 5},
-	"doing_yoga": {"health": 10, "mental": 10},
-	"online_shopping": {"entertainment": 10, "mental": -2},
-	"playing_video_games": {"entertainment": 20, "mental": -5},
-	"going_to_a_museum": {"entertainment": 10, "mental": 10},
-	"gardening": {"mental": 5, "physical": 5},
-	"taking_a_walk": {"health": 5, "mental": 5, "physical": 5},
-	"going_to_the_beach": {"entertainment": 10, "health": 5},
-	"visiting_a_spa": {"health": 20, "mental": 10},
-	"going_fishing": {"entertainment": 5, "mental": 5},
-	"painting": {"mental": 10, "entertainment": 5},
-	"writing": {"mental": 5},
-	"going_to_a_party": {"social": 25, "entertainment": 35},
-	"volunteering": {"social": 10, "mental": 10},
-	"going_to_a_library": {"mental": 15},
-	"cleaning_the_house": {"health": 5, "mental": -5}
+	"sleeping": {"effects": {"sleep": 15, "health": 2, "mental": 3}, "duration_hours": 8, "allowed_during": ["night"]},
+	"take_a_nap": {"effects": {"sleep": 12}, "duration_hours": 1, "allowed_during": ["afternoon", "evening"]},
+	"eating_at_home": {"effects": {"food": 55, "health": 4}, "duration_hours": 1},
+	"eating_out": {"effects": {"food": 30, "social": 5, "entertainment": 5}, "duration_hours": 2},
+	"grocery_shopping": {"effects": {"food": 15, "physical": 5}, "duration_hours": 2},
+	"going_to_the_gym": {"effects": {"physical": 12, "health": 5}, "duration_hours": 2},
+	"socializing_at_cafe": {"effects": {"social": 8, "food": 10}, "duration_hours": 2},
+	"watching_movie": {"effects": {"entertainment": 10, "mental": -1}, "duration_hours": 2},
+	"reading": {"effects": {"mental": 12, "entertainment": 5}, "duration_hours": 1},
+	"working_overtime": {"effects": {"mental": -3, "physical": -4, "food": -5}, "duration_hours": 4, "allowed_during": ["morning", "afternoon"]},
+	"going_to_doctor": {"effects": {"health": 12}, "duration_hours": 2},
+	"playing_sports": {"effects": {"physical": 12, "social": 5, "health": 4}, "duration_hours": 2},
+	"taking_a_bath": {"effects": {"health": 8, "mental": 6}, "duration_hours": 1},
+	"cooking": {"effects": {"food": 20, "mental": 4}, "duration_hours": 1},
+	"going_to_a_concert": {"effects": {"entertainment": 8, "social": 5}, "duration_hours": 3},
+	"visiting_family": {"effects": {"social": 8, "mental": 4}, "duration_hours": 3},
+	"doing_yoga": {"effects": {"health": 8, "mental": 8}, "duration_hours": 1},
+	"online_shopping": {"effects": {"entertainment": 8, "mental": -1}, "duration_hours": 1},
+	"playing_video_games": {"effects": {"entertainment": 10, "mental": -2}, "duration_hours": 2},
+	"going_to_a_museum": {"effects": {"entertainment": 5, "mental": 6}, "duration_hours": 3},
+	"gardening": {"effects": {"mental": 5, "physical": 5}, "duration_hours": 2},
+	"taking_a_walk": {"effects": {"health": 5, "mental": 5, "physical": 5}, "duration_hours": 1},
+	"going_to_the_beach": {"effects": {"entertainment": 5, "health": 4}, "duration_hours": 3},
+	"visiting_a_spa": {"effects": {"health": 8, "mental": 6}, "duration_hours": 3},
+	"going_fishing": {"effects": {"entertainment": 5, "mental": 4}, "duration_hours": 3},
+	"painting": {"effects": {"mental": 6, "entertainment": 5}, "duration_hours": 2},
+	"writing": {"effects": {"mental": 4}, "duration_hours": 2},
+	"going_to_a_party": {"effects": {"social": 10, "entertainment": 10}, "duration_hours": 3},
+	"volunteering": {"effects": {"social": 5, "mental": 5}, "duration_hours": 3},
+	"going_to_a_library": {"effects": {"mental": 8}, "duration_hours": 2},
+	"cleaning_the_house": {"effects": {"health": 4, "mental": -2}, "duration_hours": 2}
 }
 
-# 返回该角色在指定时间可用的活动。
-# 当前为占位：直接返回全表的深拷贝。真正的时段/角色过滤是 TODO
-# （原 time/character 分支其实只重复添加了 sleeping，而 sleeping 已在本表）。
-func get_activities(_time, _character_name):
-	return list_of_activities.duplicate(true)
+func _decay_need(need_name: String, hours: float) -> void:
+	var rate: float = get(str(need_name) + "_decay")
+	set(need_name, max(0.0, float(get(need_name)) - rate * hours))
 
-# Function to calculate the utility of an activity
-func calculate_utility(activity):
-	var total_utility = 0.0
+func _apply_effects_hourly(effects: Dictionary, hours: float) -> void:
+	for need in effects:
+		var mx: float = get(str(need) + "_max")
+		set(need, clamp(float(get(need)) + effects[need] * hours, 0.0, mx))
 
-	for need in activity.keys():
-		var impact = activity[need]
-		var current_value = get(need)
-		var max_value = get(need + "_max")
+# 角色自治主循环。① decay 用完整 hours;② effects 用 actual=min(hours,remaining) 钳到剩余;③ 空闲则选活动。
+func tick(delta_minutes: float, day_part: String) -> void:
+	var hours: float = delta_minutes / 60.0
+	if hours <= 0.0:
+		return
+	_decay_need("sleep", hours)
+	_decay_need("food", hours)
+	_decay_need("entertainment", hours)
+	_decay_need("social", hours)
+	_decay_need("health", hours)
+	_decay_need("physical", hours)
+	_decay_need("mental", hours)
+	if is_busy:
+		var actual: float = min(hours, remaining_hours)
+		_apply_effects_hourly(list_of_activities[current_activity]["effects"], actual)
+		remaining_hours -= hours
+		if remaining_hours <= 0.0:
+			is_busy = false
+			current_activity = ""
+	else:
+		select_best_activity(day_part)
 
-		var base_utility = impact * float((max_value - current_value)) / float(max_value)
-		var wasted_utility = max(0, current_value + impact - max_value)
+func get_activities(day_part: String, _character_name: String) -> Dictionary:
+	var result: Dictionary = {}
+	for act_name in list_of_activities:
+		var act = list_of_activities[act_name]
+		var allowed = act.get("allowed_during", [])
+		if allowed.is_empty() or day_part in allowed:
+			result[act_name] = act
+	return result
 
-		var composite_utility = base_utility - wasted_utility
-		total_utility += composite_utility
-
+func calculate_utility(activity: Dictionary) -> float:
+	var total_utility: float = 0.0
+	var duration: float = activity.get("duration_hours", DEFAULT_DURATION_HOURS)
+	for need in activity["effects"].keys():
+		var impact: float = activity["effects"][need] * duration
+		var current_value: float = get(need)
+		var max_value: float = get(str(need) + "_max")
+		var base_utility: float = impact * float(max_value - current_value) / float(max_value)
+		var wasted_utility: float = max(0.0, current_value + impact - max_value)
+		total_utility += base_utility - wasted_utility
 	return total_utility
 
-# Function to apply the selected activity to the character
-func apply_activity(activity_name):
-	var selected_activity = list_of_activities[activity_name]
-	for need in selected_activity.keys():
-		var impact = selected_activity[need]
-		update_need(need, impact)
-
-# Function to select the best activity based on the calculated utility
-func select_best_activity():
-	var activities = get_activities(0, Name_of_character)
-	var best_activity = ""
-	var highest_utility = -1.0
-
+func select_best_activity(day_part: String) -> void:
+	var activities := get_activities(day_part, Name_of_character)
+	var best_activity := ""
+	var highest_utility := -1e9
 	for activity_name in activities.keys():
-		var utility = calculate_utility(activities[activity_name])
+		var utility := calculate_utility(activities[activity_name])
 		if utility > highest_utility:
 			best_activity = activity_name
 			highest_utility = utility
-	return best_activity
+	if best_activity != "":
+		current_activity = best_activity
+		remaining_hours = list_of_activities[best_activity].get("duration_hours", DEFAULT_DURATION_HOURS)
+		is_busy = true
