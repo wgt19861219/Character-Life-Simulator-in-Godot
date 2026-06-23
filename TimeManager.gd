@@ -26,7 +26,7 @@ func get_day_part() -> String:
 
 func get_clock_string() -> String:
 	var total := int(floor(game_minutes)) % 1440
-	var hh := total / 60
+	var hh := int(total / 60.0)
 	var mm := total % 60
 	return "%02d:%02d" % [hh, mm]
 
