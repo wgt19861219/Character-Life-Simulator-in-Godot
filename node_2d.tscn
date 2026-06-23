@@ -92,3 +92,11 @@ offset_top = 286.0
 offset_right = 400.0
 offset_bottom = 312.0
 text = "Speed:"
+
+[node name="MoneyLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 314.0
+offset_right = 300.0
+offset_bottom = 340.0
+text = "Money:"

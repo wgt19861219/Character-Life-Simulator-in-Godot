@@ -27,6 +27,11 @@ var health
 var physical
 var mental
 
+# money（阶段3 新增，第 8 need）
+var money_max
+var money_decay
+var money
+
 # 活动持续状态
 var current_activity: String = ""
 var remaining_hours: float = 0.0
@@ -43,6 +48,7 @@ func _init(config = {}):
 	health_max = config["health_initial_max"]
 	physical_max = config["physical_initial_max"]
 	mental_max = config["mental_initial_max"]
+	money_max = config["money_initial_max"]
 	sleep_decay = config["sleep_initial_decay"]
 	food_decay = config["food_initial_decay"]
 	entertainment_decay = config["entertainment_initial_decay"]
@@ -50,6 +56,7 @@ func _init(config = {}):
 	health_decay = config["health_initial_decay"]
 	physical_decay = config["physical_initial_decay"]
 	mental_decay = config["mental_initial_decay"]
+	money_decay = config["money_initial_decay"]
 	sleep = round(sleep_max / 2)
 	food = round(food_max / 2)
 	entertainment = round(entertainment_max / 2)
@@ -57,6 +64,7 @@ func _init(config = {}):
 	health = round(health_max / 2)
 	physical = round(physical_max / 2)
 	mental = round(mental_max / 2)
+	money = round(money_max / 2)
 
 # 全部活动表。effects 为 per_hour 毛速率;duration_hours 未标吃默认 2h;allowed_during 未标则任意时段。
 var list_of_activities = {
@@ -69,7 +77,7 @@ var list_of_activities = {
 	"socializing_at_cafe": {"effects": {"social": 8, "food": 10}, "duration_hours": 2},
 	"watching_movie": {"effects": {"entertainment": 10, "mental": -1}, "duration_hours": 2},
 	"reading": {"effects": {"mental": 12, "entertainment": 5}, "duration_hours": 1},
-	"working_overtime": {"effects": {"mental": -3, "physical": -4, "food": -5}, "duration_hours": 4, "allowed_during": ["morning", "afternoon"]},
+	"working_overtime": {"effects": {"mental": -3, "physical": -4, "food": -5, "money": 20}, "duration_hours": 4, "allowed_during": ["morning", "afternoon"]},
 	"going_to_doctor": {"effects": {"health": 12}, "duration_hours": 2},
 	"playing_sports": {"effects": {"physical": 12, "social": 5, "health": 4}, "duration_hours": 2},
 	"taking_a_bath": {"effects": {"health": 8, "mental": 6}, "duration_hours": 1},
@@ -114,6 +122,7 @@ func tick(delta_minutes: float, day_part: String) -> void:
 	_decay_need("health", hours)
 	_decay_need("physical", hours)
 	_decay_need("mental", hours)
+	_decay_need("money", hours)
 	if is_busy:
 		var actual: float = min(hours, remaining_hours)
 		_apply_effects_hourly(list_of_activities[current_activity]["effects"], actual)

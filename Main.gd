@@ -16,7 +16,9 @@ var jane_config_dict = {
 	"social_initial_decay": 3,
 	"health_initial_decay": 1,
 	"physical_initial_decay": 3,
-	"mental_initial_decay": 2
+	"mental_initial_decay": 2,
+	"money_initial_max": 100,
+	"money_initial_decay": 2
 }
 
 var sleep_label
@@ -30,6 +32,7 @@ var activity_label
 var time_label
 var status_label
 var speed_label
+var money_label
 
 func _ready():
 	sleep_label = get_node("SleepLabel")
@@ -43,6 +46,7 @@ func _ready():
 	time_label = get_node("TimeLabel")
 	status_label = get_node("StatusLabel")
 	speed_label = get_node("SpeedLabel")
+	money_label = get_node("MoneyLabel")
 	jane = Character_Class.new(jane_config_dict)
 
 func _process(_delta):
@@ -58,6 +62,7 @@ func update_gui():
 	health_label.text = "Health: " + str(int(jane.health))
 	physical_label.text = "Physical: " + str(int(jane.physical))
 	mental_label.text = "Mental: " + str(int(jane.mental))
+	money_label.text = "Money: " + str(int(jane.money))
 	activity_label.text = "Activity: " + (jane.current_activity if jane.current_activity != "" else "—")
 	time_label.text = "Time: " + TimeManager.get_clock_string() + " (" + TimeManager.get_day_part() + ")"
 	var status = "Idle" if not jane.is_busy else (jane.current_activity + " · 剩 " + str("%.1f" % jane.remaining_hours) + "h")
