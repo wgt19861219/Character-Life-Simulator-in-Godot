@@ -174,5 +174,5 @@ func select_best_activity(day_part: String) -> void:
 	if best_activity != "":
 		current_activity = best_activity
 		activity_recency[best_activity] = 1.0
-		remaining_hours = list_of_activities[best_activity].get("duration_hours", DEFAULT_DURATION_HOURS)
+		remaining_hours = min(list_of_activities[best_activity].get("duration_hours", DEFAULT_DURATION_HOURS), TimeManager.get_day_part_remaining_hours())
 		is_busy = true
