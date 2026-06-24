@@ -37,6 +37,10 @@ var current_activity: String = ""
 var remaining_hours: float = 0.0
 var is_busy: bool = false
 
+# recency（阶段5：选过活动降 utility 逼轮换）
+var activity_recency: Dictionary = {}
+var RECENCY_PENALTY: float = 10.0
+
 const DEFAULT_DURATION_HOURS: float = 2.0
 
 func _init(config = {}):
@@ -123,6 +127,8 @@ func tick(delta_minutes: float, day_part: String) -> void:
 	_decay_need("physical", hours)
 	_decay_need("mental", hours)
 	_decay_need("money", hours)
+	for k in activity_recency:
+		activity_recency[k] = max(0.0, activity_recency[k] - 0.15 * hours)
 	if is_busy:
 		var actual: float = min(hours, remaining_hours)
 		_apply_effects_hourly(list_of_activities[current_activity]["effects"], actual)
@@ -160,11 +166,13 @@ func select_best_activity(day_part: String) -> void:
 	var best_activity := ""
 	var highest_utility := -1e9
 	for activity_name in activities.keys():
-		var utility := calculate_utility(activities[activity_name])
+		var raw := calculate_utility(activities[activity_name])
+		var utility: float = raw - activity_recency.get(activity_name, 0.0) * RECENCY_PENALTY
 		if utility > highest_utility:
 			best_activity = activity_name
 			highest_utility = utility
 	if best_activity != "":
 		current_activity = best_activity
+		activity_recency[best_activity] = 1.0
 		remaining_hours = list_of_activities[best_activity].get("duration_hours", DEFAULT_DURATION_HOURS)
 		is_busy = true
