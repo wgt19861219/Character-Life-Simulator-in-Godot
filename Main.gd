@@ -18,7 +18,7 @@ var jane_config_dict = {
 	"physical_initial_decay": 3,
 	"mental_initial_decay": 2,
 	"money_initial_max": 100,
-	"money_initial_decay": 2
+	"money_initial_decay": 1.5
 }
 
 var sleep_label
