@@ -156,7 +156,9 @@ func calculate_utility(activity: Dictionary) -> float:
 		var decay_ph: float = get(str(need) + "_decay")
 		var current: float = get(need)
 		var mx: float = get(str(need) + "_max")
-		var net_change: float = clamp(current + (effect_ph - decay_ph) * duration, 0.0, mx) - current
+		# money 是资源型 need：消费负 effect 不被下界 clamp 抹掉（消除非单调 DEFECT money-utility-clamp-nonmonotonic，阶段7），其余 need 维持 clamp 净模型
+		var raw_change: float = current + (effect_ph - decay_ph) * duration
+		var net_change: float = (min(raw_change, mx) if need == "money" else clamp(raw_change, 0.0, mx)) - current
 		var urgency: float = float(mx - current) / float(mx)
 		total_utility += net_change * urgency
 	return total_utility
