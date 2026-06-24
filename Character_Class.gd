@@ -167,7 +167,9 @@ func select_best_activity(day_part: String) -> void:
 	var activities := get_activities(day_part, Name_of_character)
 	var best_activity := ""
 	var highest_utility := -1e9
-	for activity_name in activities.keys():
+	var names := activities.keys()
+	names.sort()   # 确定遍历顺序：消除 GDScript Dictionary 跨运行哈希顺序导致的非确定选择（阶段7 发现）
+	for activity_name in names:
 		var raw := calculate_utility(activities[activity_name])
 		var utility: float = raw - activity_recency.get(activity_name, 0.0) * RECENCY_PENALTY
 		if utility > highest_utility:
