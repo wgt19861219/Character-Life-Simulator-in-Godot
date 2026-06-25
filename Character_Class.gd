@@ -41,6 +41,22 @@ var is_busy: bool = false
 var activity_recency: Dictionary = {}
 var RECENCY_PENALTY: float = 10.0
 
+# need deficit（阶段8：长期低位 need 累计亏欠，select 时驱动均衡；money 不参与）
+# 用直接成员变量（非字典）：execute_gdscript 对 Dictionary 操作非确定（Godot 4.7 + Node 不入树 bug），
+# 直接属性 + set/get 稳定（stage7 _decay_need 已验证）
+var sleep_deficit: float = 0.0
+var food_deficit: float = 0.0
+var entertainment_deficit: float = 0.0
+var social_deficit: float = 0.0
+var health_deficit: float = 0.0
+var physical_deficit: float = 0.0
+var mental_deficit: float = 0.0
+const DEFICIT_LOW: float = 30.0      # need < 此值开始累计 deficit
+const DEFICIT_HIGH: float = 60.0     # need > 此值衰减 deficit
+const DEFICIT_ACCRUE: float = 0.5    # 低位累计速率 /h
+const DEFICIT_DECAY: float = 0.8     # 高位衰减系数（每游戏小时 ×此值）
+const DEFICIT_WEIGHT: float = 0.5    # select 时 deficit 加成权重（Task3 集成调；0.5 平衡 ent/phys 补偿与 money/night 不回归）
+
 const DEFAULT_DURATION_HOURS: float = 2.0
 
 func _init(config = {}):
@@ -129,6 +145,15 @@ func tick(delta_minutes: float, day_part: String) -> void:
 	_decay_need("money", hours)
 	for k in activity_recency:
 		activity_recency[k] = max(0.0, activity_recency[k] - 0.15 * hours)
+	# need deficit 更新（阶段8：长期低位 need 累计亏欠，select 时驱动均衡；money 不参与）
+	for need_name in ["sleep", "food", "entertainment", "social", "health", "physical", "mental"]:
+		var cur_d: float = float(get(need_name))
+		var def_prop: String = need_name + "_deficit"
+		var prev_d: float = float(get(def_prop))
+		if cur_d < DEFICIT_LOW:
+			set(def_prop, prev_d + DEFICIT_ACCRUE * hours)
+		elif cur_d > DEFICIT_HIGH:
+			set(def_prop, prev_d * pow(DEFICIT_DECAY, hours))
 	if is_busy:
 		var actual: float = min(hours, remaining_hours)
 		_apply_effects_hourly(list_of_activities[current_activity]["effects"], actual)
@@ -172,6 +197,11 @@ func select_best_activity(day_part: String) -> void:
 	for activity_name in names:
 		var raw := calculate_utility(activities[activity_name])
 		var utility: float = raw - activity_recency.get(activity_name, 0.0) * RECENCY_PENALTY
+		# deficit 加成：活动对该 need 有正 effect 时，按该 need 累计 deficit 加 utility（money 不参与；阶段8）
+		var effects = activities[activity_name]["effects"]
+		for need_name in effects:
+			if effects[need_name] > 0 and need_name != "money":
+				utility += float(get(str(need_name) + "_deficit")) * DEFICIT_WEIGHT
 		if utility > highest_utility:
 			best_activity = activity_name
 			highest_utility = utility
