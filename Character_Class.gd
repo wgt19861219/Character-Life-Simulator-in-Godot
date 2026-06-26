@@ -40,6 +40,7 @@ var is_busy: bool = false
 # recency（阶段5：选过活动降 utility 逼轮换）
 var activity_recency: Dictionary = {}
 var RECENCY_PENALTY: float = 10.0
+var last_forced_need: String = ""   # stage9 v2 轮换：上次硬触发补的 need，本次优先换一个（避免 ent 独占）
 
 # need deficit（阶段8：长期低位 need 累计亏欠，select 时驱动均衡；money 不参与）
 # 用直接成员变量（非字典）：execute_gdscript 对 Dictionary 操作非确定（Godot 4.7 + Node 不入树 bug），
@@ -56,6 +57,7 @@ const DEFICIT_HIGH: float = 60.0     # need > 此值衰减 deficit
 const DEFICIT_ACCRUE: float = 0.5    # 低位累计速率 /h
 const DEFICIT_DECAY: float = 0.8     # 高位衰减系数（每游戏小时 ×此值）
 const DEFICIT_WEIGHT: float = 0.5    # select 时 deficit 加成权重（Task3 集成调；0.5 平衡 ent/phys 补偿与 money/night 不回归）
+const FORCE_DEFICIT_THRESHOLD: float = 15.0   # stage9：deficit 超此值的品质 need 强制补给，打破 max-choose「永远的第二名」
 
 const DEFAULT_DURATION_HOURS: float = 2.0
 
@@ -188,7 +190,89 @@ func calculate_utility(activity: Dictionary) -> float:
 		total_utility += net_change * urgency
 	return total_utility
 
+func _commit_activity(act_name: String) -> void:
+	current_activity = act_name
+	activity_recency[act_name] = 1.0
+	remaining_hours = min(list_of_activities[act_name].get("duration_hours", DEFAULT_DURATION_HOURS), TimeManager.get_day_part_remaining_hours())
+	is_busy = true
+
+# 该 need 的补给活动中 utility 最高的（供 survival 层用）
+func _best_replenish(need_name: String, day_part: String) -> String:
+	var acts := get_activities(day_part, Name_of_character)
+	var best := ""
+	var best_u := -1e9
+	var names := acts.keys()
+	names.sort()
+	for an in names:
+		var eff = acts[an]["effects"]
+		if eff.has(need_name) and float(eff[need_name]) > 0.0:
+			var u := calculate_utility(acts[an])
+			if u > best_u:
+				best_u = u
+				best = an
+	return best
+
+# L1 survival 强制层（双层调度）：food/money/sleep 低于安全线 → 强制补给，优先于品质/utility
+func _pick_survival_activity(day_part: String) -> String:
+	if food < 25.0:
+		return _best_replenish("food", day_part)
+	if money < 15.0:
+		if get_activities(day_part, Name_of_character).has("working_overtime"):
+			return "working_overtime"
+	if day_part == "night" and sleep < 30.0:
+		return "sleeping"
+	return ""
+
 func select_best_activity(day_part: String) -> void:
+	# L1 survival 强制（双层调度）：刚需优先于品质/utility（治 v2 night 崩 + 强化 food/money/sleep）
+	var surv := _pick_survival_activity(day_part)
+	if surv != "":
+		_commit_activity(surv)
+		return
+	# L2 品质 deficit 轮换（stage9 v2）：找 deficit 最大且超阈的品质 need，强制补给，打破 max-choose「永远的第二名」
+	var forced_need := ""
+	var forced_def := FORCE_DEFICIT_THRESHOLD
+	for need_name in ["entertainment", "physical", "social", "mental", "health", "sleep"]:
+		var d := float(get(str(need_name) + "_deficit"))
+		if d > forced_def:
+			forced_def = d
+			forced_need = need_name
+	# 轮换：若最大 need == last_forced_need 且还有别的超阈 need，换第二个（治 phys 永远轮不到）
+	if forced_need != "" and forced_need == last_forced_need:
+		var alt_need := ""
+		var alt_def := FORCE_DEFICIT_THRESHOLD
+		for need_name in ["entertainment", "physical", "social", "mental", "health", "sleep"]:
+			if need_name == last_forced_need:
+				continue
+			var d := float(get(str(need_name) + "_deficit"))
+			if d > alt_def:
+				alt_def = d
+				alt_need = need_name
+		if alt_need != "":
+			forced_need = alt_need
+	# survival 守卫（v2 收紧 food 25→35，给 night 8h decay buffer）+ money
+	if forced_need != "" and food >= 35.0 and money >= 20.0:
+		var f_acts := get_activities(day_part, Name_of_character)
+		var f_best := ""
+		var f_effect := -1e9
+		var f_names := f_acts.keys()
+		f_names.sort()
+		for an in f_names:
+			var feff = f_acts[an]["effects"]
+			if not (feff.has(forced_need) and float(feff[forced_need]) > 0.0):
+				continue
+			# food 预算过滤：活动 duration 后 food 不得跌穿 15（防品质活动挤占 food 时间→food 崩）
+			var dur := float(f_acts[an].get("duration_hours", DEFAULT_DURATION_HOURS))
+			var food_after: float = float(food) + (float(feff.get("food", 0.0)) - float(food_decay)) * dur
+			if food_after < 15.0:
+				continue
+			if float(feff[forced_need]) > f_effect:
+				f_effect = float(feff[forced_need])
+				f_best = an
+		if f_best != "":
+			last_forced_need = forced_need
+			_commit_activity(f_best)
+			return
 	var activities := get_activities(day_part, Name_of_character)
 	var best_activity := ""
 	var highest_utility := -1e9
@@ -206,7 +290,4 @@ func select_best_activity(day_part: String) -> void:
 			best_activity = activity_name
 			highest_utility = utility
 	if best_activity != "":
-		current_activity = best_activity
-		activity_recency[best_activity] = 1.0
-		remaining_hours = min(list_of_activities[best_activity].get("duration_hours", DEFAULT_DURATION_HOURS), TimeManager.get_day_part_remaining_hours())
-		is_busy = true
+		_commit_activity(best_activity)
