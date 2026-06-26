@@ -21,32 +21,37 @@ var jane_config_dict = {
 	"money_initial_decay": 1.5
 }
 
-var sleep_label
-var food_label
-var entertainment_label
-var social_label
-var health_label
-var physical_label
-var mental_label
+# need 配置：[jane 成员属性名, 场景行节点前缀]；顺序对应 tscn 自上而下
+const NEEDS := [
+	["sleep", "Sleep"],
+	["food", "Food"],
+	["entertainment", "Entertainment"],
+	["social", "Social"],
+	["health", "Health"],
+	["physical", "Physical"],
+	["mental", "Mental"],
+	["money", "Money"],
+]
+
+# 缓存控件引用：need 属性名 -> ProgressBar / 数值 Label（_ready 一次性取，避免每帧 get_node）
+var need_bars := {}
+var need_vals := {}
+
 var activity_label
-var time_label
 var status_label
+var time_label
 var speed_label
-var money_label
 
 func _ready():
-	sleep_label = get_node("SleepLabel")
-	food_label = get_node("FoodLabel")
-	entertainment_label = get_node("EntertainmentLabel")
-	social_label = get_node("SocialLabel")
-	health_label = get_node("HealthLabel")
-	physical_label = get_node("PhysicalLabel")
-	mental_label = get_node("MentalLabel")
-	activity_label = get_node("ActivityLabel")
-	time_label = get_node("TimeLabel")
-	status_label = get_node("StatusLabel")
-	speed_label = get_node("SpeedLabel")
-	money_label = get_node("MoneyLabel")
+	for entry in NEEDS:
+		var prop: String = entry[0]
+		var prefix: String = entry[1]
+		need_bars[prop] = get_node("Margin/VBox/" + prefix + "Row/" + prefix + "Bar")
+		need_vals[prop] = get_node("Margin/VBox/" + prefix + "Row/" + prefix + "Val")
+	activity_label = get_node("Margin/VBox/ActivityLabel")
+	status_label = get_node("Margin/VBox/StatusLabel")
+	time_label = get_node("Margin/VBox/TimeLabel")
+	speed_label = get_node("Margin/VBox/SpeedLabel")
 	jane = Character_Class.new(jane_config_dict)
 
 func _process(_delta):
@@ -55,20 +60,27 @@ func _process(_delta):
 	update_gui()
 
 func update_gui():
-	sleep_label.text = "Sleep: " + str(int(jane.sleep))
-	food_label.text = "Food: " + str(int(jane.food))
-	entertainment_label.text = "Entertainment: " + str(int(jane.entertainment))
-	social_label.text = "Social: " + str(int(jane.social))
-	health_label.text = "Health: " + str(int(jane.health))
-	physical_label.text = "Physical: " + str(int(jane.physical))
-	mental_label.text = "Mental: " + str(int(jane.mental))
-	money_label.text = "Money: " + str(int(jane.money))
+	for entry in NEEDS:
+		var prop: String = entry[0]
+		var v: int = int(jane.get(prop))
+		need_bars[prop].value = v
+		need_bars[prop].modulate = _need_color(v)
+		need_vals[prop].text = str(v)
 	activity_label.text = "Activity: " + (jane.current_activity if jane.current_activity != "" else "—")
-	time_label.text = "Time: " + TimeManager.get_clock_string() + " (" + TimeManager.get_day_part() + ")"
 	var status = "Idle" if not jane.is_busy else (jane.current_activity + " · 剩 " + str("%.1f" % jane.remaining_hours) + "h")
 	status_label.text = "Status: " + status
+	time_label.text = "Time: " + TimeManager.get_clock_string() + " (" + TimeManager.get_day_part() + ")"
 	var sp = "paused" if TimeManager.paused else (str(TimeManager.speed_scale) + "x")
 	speed_label.text = "Speed: " + sp + "   [1/2/3 切速 · Space 暂停]"
+
+# need 值染色：< 30 危(红) / < 60 警(黄) / >= 60 佳(绿)。一眼看出哪个 need 快崩
+func _need_color(v: int) -> Color:
+	if v < 30:
+		return Color(0.90, 0.30, 0.30)
+	elif v < 60:
+		return Color(0.95, 0.72, 0.25)
+	else:
+		return Color(0.30, 0.80, 0.40)
 
 func _unhandled_input(event):
 	if event is InputEventKey and event.pressed and not event.echo:

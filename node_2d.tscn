@@ -4,99 +4,216 @@
 
 [node name="control" type="Control"]
 layout_mode = 3
-anchors_preset = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_0fsuj")
 
-[node name="SleepLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 9.0
-offset_top = 36.0
-offset_right = 284.0
-offset_bottom = 62.0
-text = "Sleep :"
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
-[node name="FoodLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 6.0
-offset_top = 63.0
-offset_right = 57.0
-offset_bottom = 89.0
-text = "Food : "
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="EntertainmentLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 7.0
-offset_top = 88.0
-offset_right = 133.0
-offset_bottom = 114.0
-text = "Entertainment : "
+[node name="TitleLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+text = "Jane · Character Life Sim"
 
-[node name="SocialLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 114.0
-offset_right = 62.0
-offset_bottom = 140.0
-text = "Social : "
+[node name="ActivityLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+text = "Activity: "
 
-[node name="HealthLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 141.0
-offset_right = 106.0
-offset_bottom = 167.0
-text = "Health Label :"
-
-[node name="PhysicalLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 167.0
-offset_right = 121.0
-offset_bottom = 193.0
-text = "Physiclal Label "
-
-[node name="MentalLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 7.0
-offset_top = 196.0
-offset_right = 74.0
-offset_bottom = 222.0
-text = "Mental : "
-
-[node name="ActivityLabel" type="Label" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "Activity : "
-
-[node name="TimeLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 230.0
-offset_right = 300.0
-offset_bottom = 256.0
-text = "Time:"
-
-[node name="StatusLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 258.0
-offset_right = 300.0
-offset_bottom = 284.0
+[node name="StatusLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
 text = "Status:"
 
-[node name="SpeedLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 286.0
-offset_right = 400.0
-offset_bottom = 312.0
+[node name="TimeLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+text = "Time:"
+
+[node name="SpeedLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
 text = "Speed:"
 
-[node name="MoneyLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 314.0
-offset_right = 300.0
-offset_bottom = 340.0
-text = "Money:"
+[node name="Sep" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="SleepRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SleepName" type="Label" parent="Margin/VBox/SleepRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Sleep"
+
+[node name="SleepBar" type="ProgressBar" parent="Margin/VBox/SleepRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+show_percentage = false
+
+[node name="SleepVal" type="Label" parent="Margin/VBox/SleepRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+horizontal_alignment = 2
+text = "50"
+
+[node name="FoodRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FoodName" type="Label" parent="Margin/VBox/FoodRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Food"
+
+[node name="FoodBar" type="ProgressBar" parent="Margin/VBox/FoodRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+show_percentage = false
+
+[node name="FoodVal" type="Label" parent="Margin/VBox/FoodRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+horizontal_alignment = 2
+text = "50"
+
+[node name="EntertainmentRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EntertainmentName" type="Label" parent="Margin/VBox/EntertainmentRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Entertainment"
+
+[node name="EntertainmentBar" type="ProgressBar" parent="Margin/VBox/EntertainmentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+show_percentage = false
+
+[node name="EntertainmentVal" type="Label" parent="Margin/VBox/EntertainmentRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+horizontal_alignment = 2
+text = "50"
+
+[node name="SocialRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SocialName" type="Label" parent="Margin/VBox/SocialRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Social"
+
+[node name="SocialBar" type="ProgressBar" parent="Margin/VBox/SocialRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+show_percentage = false
+
+[node name="SocialVal" type="Label" parent="Margin/VBox/SocialRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+horizontal_alignment = 2
+text = "50"
+
+[node name="HealthRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HealthName" type="Label" parent="Margin/VBox/HealthRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Health"
+
+[node name="HealthBar" type="ProgressBar" parent="Margin/VBox/HealthRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+show_percentage = false
+
+[node name="HealthVal" type="Label" parent="Margin/VBox/HealthRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+horizontal_alignment = 2
+text = "50"
+
+[node name="PhysicalRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PhysicalName" type="Label" parent="Margin/VBox/PhysicalRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Physical"
+
+[node name="PhysicalBar" type="ProgressBar" parent="Margin/VBox/PhysicalRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+show_percentage = false
+
+[node name="PhysicalVal" type="Label" parent="Margin/VBox/PhysicalRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+horizontal_alignment = 2
+text = "50"
+
+[node name="MentalRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MentalName" type="Label" parent="Margin/VBox/MentalRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Mental"
+
+[node name="MentalBar" type="ProgressBar" parent="Margin/VBox/MentalRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+show_percentage = false
+
+[node name="MentalVal" type="Label" parent="Margin/VBox/MentalRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+horizontal_alignment = 2
+text = "50"
+
+[node name="MoneyRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MoneyName" type="Label" parent="Margin/VBox/MoneyRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Money"
+
+[node name="MoneyBar" type="ProgressBar" parent="Margin/VBox/MoneyRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+show_percentage = false
+
+[node name="MoneyVal" type="Label" parent="Margin/VBox/MoneyRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+horizontal_alignment = 2
+text = "50"
