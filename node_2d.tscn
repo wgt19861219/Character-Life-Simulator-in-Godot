@@ -23,197 +23,233 @@ theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
-[node name="VBox" type="VBoxContainer" parent="Margin"]
+[node name="HBox" type="HBoxContainer" parent="Margin"]
 layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="VBox" type="VBoxContainer" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="TitleLabel" type="Label" parent="Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="Margin/HBox/VBox"]
 layout_mode = 2
 text = "Jane · Character Life Sim"
 
-[node name="ActivityLabel" type="Label" parent="Margin/VBox"]
+[node name="ActivityLabel" type="Label" parent="Margin/HBox/VBox"]
 layout_mode = 2
 text = "Activity: "
 
-[node name="StatusLabel" type="Label" parent="Margin/VBox"]
+[node name="StatusLabel" type="Label" parent="Margin/HBox/VBox"]
 layout_mode = 2
 text = "Status:"
 
-[node name="TimeLabel" type="Label" parent="Margin/VBox"]
+[node name="TimeLabel" type="Label" parent="Margin/HBox/VBox"]
 layout_mode = 2
 text = "Time:"
 
-[node name="SpeedLabel" type="Label" parent="Margin/VBox"]
+[node name="SpeedLabel" type="Label" parent="Margin/HBox/VBox"]
 layout_mode = 2
 text = "Speed:"
 
-[node name="Sep" type="HSeparator" parent="Margin/VBox"]
+[node name="Sep" type="HSeparator" parent="Margin/HBox/VBox"]
 layout_mode = 2
 
-[node name="SleepRow" type="HBoxContainer" parent="Margin/VBox"]
+[node name="SleepRow" type="HBoxContainer" parent="Margin/HBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SleepName" type="Label" parent="Margin/VBox/SleepRow"]
+[node name="SleepName" type="Label" parent="Margin/HBox/VBox/SleepRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(110, 0)
 text = "Sleep"
 
-[node name="SleepBar" type="ProgressBar" parent="Margin/VBox/SleepRow"]
+[node name="SleepBar" type="ProgressBar" parent="Margin/HBox/VBox/SleepRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 100.0
 show_percentage = false
 
-[node name="SleepVal" type="Label" parent="Margin/VBox/SleepRow"]
+[node name="SleepVal" type="Label" parent="Margin/HBox/VBox/SleepRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(40, 0)
 horizontal_alignment = 2
 text = "50"
 
-[node name="FoodRow" type="HBoxContainer" parent="Margin/VBox"]
+[node name="FoodRow" type="HBoxContainer" parent="Margin/HBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="FoodName" type="Label" parent="Margin/VBox/FoodRow"]
+[node name="FoodName" type="Label" parent="Margin/HBox/VBox/FoodRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(110, 0)
 text = "Food"
 
-[node name="FoodBar" type="ProgressBar" parent="Margin/VBox/FoodRow"]
+[node name="FoodBar" type="ProgressBar" parent="Margin/HBox/VBox/FoodRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 100.0
 show_percentage = false
 
-[node name="FoodVal" type="Label" parent="Margin/VBox/FoodRow"]
+[node name="FoodVal" type="Label" parent="Margin/HBox/VBox/FoodRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(40, 0)
 horizontal_alignment = 2
 text = "50"
 
-[node name="EntertainmentRow" type="HBoxContainer" parent="Margin/VBox"]
+[node name="EntertainmentRow" type="HBoxContainer" parent="Margin/HBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="EntertainmentName" type="Label" parent="Margin/VBox/EntertainmentRow"]
+[node name="EntertainmentName" type="Label" parent="Margin/HBox/VBox/EntertainmentRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(110, 0)
 text = "Entertainment"
 
-[node name="EntertainmentBar" type="ProgressBar" parent="Margin/VBox/EntertainmentRow"]
+[node name="EntertainmentBar" type="ProgressBar" parent="Margin/HBox/VBox/EntertainmentRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 100.0
 show_percentage = false
 
-[node name="EntertainmentVal" type="Label" parent="Margin/VBox/EntertainmentRow"]
+[node name="EntertainmentVal" type="Label" parent="Margin/HBox/VBox/EntertainmentRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(40, 0)
 horizontal_alignment = 2
 text = "50"
 
-[node name="SocialRow" type="HBoxContainer" parent="Margin/VBox"]
+[node name="SocialRow" type="HBoxContainer" parent="Margin/HBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SocialName" type="Label" parent="Margin/VBox/SocialRow"]
+[node name="SocialName" type="Label" parent="Margin/HBox/VBox/SocialRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(110, 0)
 text = "Social"
 
-[node name="SocialBar" type="ProgressBar" parent="Margin/VBox/SocialRow"]
+[node name="SocialBar" type="ProgressBar" parent="Margin/HBox/VBox/SocialRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 100.0
 show_percentage = false
 
-[node name="SocialVal" type="Label" parent="Margin/VBox/SocialRow"]
+[node name="SocialVal" type="Label" parent="Margin/HBox/VBox/SocialRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(40, 0)
 horizontal_alignment = 2
 text = "50"
 
-[node name="HealthRow" type="HBoxContainer" parent="Margin/VBox"]
+[node name="HealthRow" type="HBoxContainer" parent="Margin/HBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="HealthName" type="Label" parent="Margin/VBox/HealthRow"]
+[node name="HealthName" type="Label" parent="Margin/HBox/VBox/HealthRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(110, 0)
 text = "Health"
 
-[node name="HealthBar" type="ProgressBar" parent="Margin/VBox/HealthRow"]
+[node name="HealthBar" type="ProgressBar" parent="Margin/HBox/VBox/HealthRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 100.0
 show_percentage = false
 
-[node name="HealthVal" type="Label" parent="Margin/VBox/HealthRow"]
+[node name="HealthVal" type="Label" parent="Margin/HBox/VBox/HealthRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(40, 0)
 horizontal_alignment = 2
 text = "50"
 
-[node name="PhysicalRow" type="HBoxContainer" parent="Margin/VBox"]
+[node name="PhysicalRow" type="HBoxContainer" parent="Margin/HBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PhysicalName" type="Label" parent="Margin/VBox/PhysicalRow"]
+[node name="PhysicalName" type="Label" parent="Margin/HBox/VBox/PhysicalRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(110, 0)
 text = "Physical"
 
-[node name="PhysicalBar" type="ProgressBar" parent="Margin/VBox/PhysicalRow"]
+[node name="PhysicalBar" type="ProgressBar" parent="Margin/HBox/VBox/PhysicalRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 100.0
 show_percentage = false
 
-[node name="PhysicalVal" type="Label" parent="Margin/VBox/PhysicalRow"]
+[node name="PhysicalVal" type="Label" parent="Margin/HBox/VBox/PhysicalRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(40, 0)
 horizontal_alignment = 2
 text = "50"
 
-[node name="MentalRow" type="HBoxContainer" parent="Margin/VBox"]
+[node name="MentalRow" type="HBoxContainer" parent="Margin/HBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="MentalName" type="Label" parent="Margin/VBox/MentalRow"]
+[node name="MentalName" type="Label" parent="Margin/HBox/VBox/MentalRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(110, 0)
 text = "Mental"
 
-[node name="MentalBar" type="ProgressBar" parent="Margin/VBox/MentalRow"]
+[node name="MentalBar" type="ProgressBar" parent="Margin/HBox/VBox/MentalRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 100.0
 show_percentage = false
 
-[node name="MentalVal" type="Label" parent="Margin/VBox/MentalRow"]
+[node name="MentalVal" type="Label" parent="Margin/HBox/VBox/MentalRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(40, 0)
 horizontal_alignment = 2
 text = "50"
 
-[node name="MoneyRow" type="HBoxContainer" parent="Margin/VBox"]
+[node name="MoneyRow" type="HBoxContainer" parent="Margin/HBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="MoneyName" type="Label" parent="Margin/VBox/MoneyRow"]
+[node name="MoneyName" type="Label" parent="Margin/HBox/VBox/MoneyRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(110, 0)
 text = "Money"
 
-[node name="MoneyBar" type="ProgressBar" parent="Margin/VBox/MoneyRow"]
+[node name="MoneyBar" type="ProgressBar" parent="Margin/HBox/VBox/MoneyRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 100.0
 show_percentage = false
 
-[node name="MoneyVal" type="Label" parent="Margin/VBox/MoneyRow"]
+[node name="MoneyVal" type="Label" parent="Margin/HBox/VBox/MoneyRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(40, 0)
 horizontal_alignment = 2
 text = "50"
+
+[node name="CharacterStage" type="Panel" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(420, 0)
+
+[node name="CharVBox" type="VBoxContainer" parent="Margin/HBox/CharacterStage"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="JaneLabel" type="Label" parent="Margin/HBox/CharacterStage/CharVBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Jane"
+
+[node name="CharacterRect" type="ColorRect" parent="Margin/HBox/CharacterStage/CharVBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(110, 150)
+color = Color(0.3, 0.5, 0.8, 1)
+
+[node name="StateLabel" type="Label" parent="Margin/HBox/CharacterStage/CharVBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "idle"
