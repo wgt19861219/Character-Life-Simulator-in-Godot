@@ -66,6 +66,7 @@ var physical_quota_target: float = 3.0
 var entertainment_quota_done: float = 0.0     # 今日已补给 h
 var physical_quota_done: float = 0.0
 var _last_day: int = -1                       # 跨天重置用（tick 开头判定）
+const QUOTA_FULL_PENALTY: float = 50.0        # stage10：L3 中补已满配额 need 的活动 utility 减分（避免 L3 偏 ent 挤压 phys）
 
 const DEFAULT_DURATION_HOURS: float = 2.0
 
@@ -266,13 +267,15 @@ func _pick_survival_activity(day_part: String) -> String:
 
 # stage10 L1.5 品质配额：今日未达配额的 ent/phys，守卫满足则强制补给（proactive 保底）
 func _pick_quota_activity(day_part: String) -> String:
+	if day_part == "night":
+		return ""    # night 专留 sleep（allowed_during 未标活动夜间也可选，否则 L1.5 抢 sleep → night 回归）
 	# 跨天重置已在 tick 开头完成，此处只读 owe
 	var ent_owe: bool = entertainment_quota_done < entertainment_quota_target
 	var phys_owe: bool = physical_quota_done < physical_quota_target
 	var need: String = ""
 	if ent_owe and phys_owe:
-		# 都欠时选 deficit 高的（谁更亏先补谁）
-		need = "entertainment" if entertainment_deficit >= physical_deficit else "physical"
+		# 都欠时优先 ent（ent decay 4 高于 phys 3，更急需；phys 优先会因 gym 花钱导致 money 崩 + 挤压 ent）
+		need = "entertainment" if entertainment_quota_done <= physical_quota_done else "physical"
 	elif ent_owe:
 		need = "entertainment"
 	elif phys_owe:
@@ -299,6 +302,11 @@ func select_best_activity(day_part: String) -> void:
 	var forced_need := ""
 	var forced_def := FORCE_DEFICIT_THRESHOLD
 	for need_name in ["entertainment", "physical", "social", "mental", "health", "sleep"]:
+		# stage10：ent/phys 配额已满则跳过（让 L1.5 配额制生效，避免 L2 继续补已满 need 挤压 phys）
+		if need_name == "entertainment" and entertainment_quota_done >= entertainment_quota_target:
+			continue
+		if need_name == "physical" and physical_quota_done >= physical_quota_target:
+			continue
 		var d := float(get(str(need_name) + "_deficit"))
 		if d > forced_def:
 			forced_def = d
@@ -336,6 +344,11 @@ func select_best_activity(day_part: String) -> void:
 		for need_name in effects:
 			if effects[need_name] > 0 and need_name != "money":
 				utility += float(get(str(need_name) + "_deficit")) * DEFICIT_WEIGHT
+		# stage10：配额已满的 ent/phys，其补给活动 utility 减分（避免 L3 继续补已满 need 挤压 phys）
+		if entertainment_quota_done >= entertainment_quota_target and float(effects.get("entertainment", 0)) > 0.0:
+			utility -= QUOTA_FULL_PENALTY
+		if physical_quota_done >= physical_quota_target and float(effects.get("physical", 0)) > 0.0:
+			utility -= QUOTA_FULL_PENALTY
 		if utility > highest_utility:
 			best_activity = activity_name
 			highest_utility = utility
