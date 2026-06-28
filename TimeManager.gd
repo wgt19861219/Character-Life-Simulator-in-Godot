@@ -58,3 +58,7 @@ func get_day_part_remaining_hours() -> float:
 	if diff <= 0.0:
 		diff += 1440.0
 	return diff / 60.0
+
+# stage10：第几天（game_minutes/1440）；配额跨天重置用。speed_scale 只影响流速不影响 day 语义
+func get_day() -> int:
+	return int(floor(game_minutes / 1440.0))
