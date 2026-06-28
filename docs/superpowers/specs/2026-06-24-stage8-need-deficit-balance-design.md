@@ -163,5 +163,9 @@ calculate_utility（保持瞬时净效用语义）、tick 的 decay/effects/busy
 - ✅ 不回归 stage1-7：mz=3h<6h、food=3h<6h、night sleeping=23/24=0.96≥0.8、kinds=3≥2
 - ⚠️ 局限：ent/phys **avg 低**（jane 大部分时间 ent/phys=0，deficit 累计很高才在末段补到 50）。升 WEIGHT 到 1.0 则 mz 崩到 13h（spec §8 预见的「ent/phys 改善 vs money 稳定不可兼得」）。0.5 与 0.7 同效，选 0.5（离回归点远，保守）。
 
-### 9.4 后续（看板①）
-ent/phys avg 低说明 deficit 弱效：jane 大部分时间仍 ent/phys=0。若要更强改善，需 rework 机制（如 sleep 排除 deficit / night 时段保护 sleeping / deficit 加成上限），属 stage8 超范围，留看板①「消费多样仍不足时调标定」后续评估。
+### 9.4 后续（看板①）— 根因更正 2026-06-28（stage9 实证）
+ent/phys avg 低 **非 deficit 弱效**：stage9 实测 deficit 累计正常涨到 28~33、加成 14~16（`WEIGHT=0.5`），机制有效。真根因见 stage9 spec §2「max-choose『永远的第二名』」：单步贪心每步选 utility #1，而 #1 几乎总被 food 刚需（`eating_out`）占着，ent/phys 永远是 #2、上不了位——deficit 加成把品质活动 utility 抬高后仍争不过 food #1。
+
+→ stage9（双层调度：L1 survival 强制 + L2 品质 deficit 轮换强制 + L3 utility 兜底）用「强制补给绕过 argmax」回应此根因，稳住 4/5 硬指标 + phys avg 5.3→6.9；但 ent/phys **avg ≥ 30** 健康线仍判定为单步贪心架构天花板（stage9 spec §9.4：survival 占满时间预算 + 品质 effect 弱，单步贪心补不到，需多步规划）。
+
+详见 `D:\GitHub\Character-Life-Simulator-in-Godot\docs\superpowers\specs\2026-06-26-stage9-two-tier-scheduling-design.md`。
